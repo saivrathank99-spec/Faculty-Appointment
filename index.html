@@ -1,0 +1,401 @@
+html
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Faculty Appointment Scheduling System</title>
+
+<style>
+/* ===== 1. BASIC PAGE ===== */
+* { box-sizing: border-box; }
+
+body {
+    font-family: Arial, sans-serif;
+    font-size: 14px;
+    background-color: #ffad5c;
+    margin: 0;
+}
+
+header {
+    background: linear-gradient(to right, #1e3a8a, #2563eb);
+    color: white;
+    text-align: center;
+    padding: 22px 15px;
+}
+header h1 { margin: 0 0 5px 0; font-size: 26px; }
+header p  { margin: 0; }
+
+footer { text-align: center; color: #555; padding: 15px; }
+
+/* ===== 2. LAYOUT (left column + right column) ===== */
+.main {
+    display: flex;
+    gap: 20px;
+    max-width: 1150px;
+    margin: 20px auto;
+    padding: 0 15px;
+    align-items: flex-start;
+}
+.left  { width: 34%; }
+.right { width: 66%; }
+
+/* the light-blue rounded boxes */
+.left, .box {
+    background-color: #d9ecff;
+    padding: 18px;
+    border-radius: 12px;
+}
+.box { margin-bottom: 18px; }
+
+h2 { color: #1e3a8a; margin-top: 0; }
+
+/* the round step numbers */
+.step {
+    display: inline-block;
+    width: 28px;
+    height: 28px;
+    line-height: 28px;
+    text-align: center;
+    background-color: #2563eb;
+    color: white;
+    border-radius: 50%;
+    margin-right: 8px;
+}
+
+/* ===== 3. FORM ITEMS AND BUTTONS ===== */
+label { font-weight: bold; }
+
+select, input[type=text], textarea, .fake-input {
+    display: block;
+    width: 100%;
+    padding: 9px;
+    margin: 5px 0 12px 0;
+    border: 1px solid #c5ccd6;
+    border-radius: 6px;
+    font-size: 14px;
+    font-family: Arial, sans-serif;
+    background-color: white;
+}
+.fake-input { background-color: #f1f5f9; }   /* grey boxes that only show text */
+
+button, .cancel {
+    display: inline-block;
+    padding: 9px 14px;
+    border: none;
+    border-radius: 6px;
+    color: white;
+    background-color: #2563eb;
+    font-size: 14px;
+    text-decoration: none;
+    cursor: pointer;
+}
+.cancel { background-color: #dc2626; margin-top: 10px; }
+
+/* all radio buttons are hidden - we click their labels instead */
+input[type=radio] { display: none; }
+
+/* ===== 4. FACULTY CARDS (left side) ===== */
+.card {
+    border: 2px solid #dde3ea;
+    border-radius: 10px;
+    padding: 12px;
+    margin-bottom: 12px;
+    background-color: #fafbfc;
+}
+.card h4 { margin: 0 0 6px 0; color: #1e3a8a; }
+.card p  { margin: 3px 0; }
+
+/* the green button on each card (its text comes from CSS below) */
+.card label {
+    display: inline-block;
+    padding: 8px 14px;
+    margin-top: 8px;
+    border-radius: 6px;
+    background-color: #16a34a;
+    color: white;
+    cursor: pointer;
+}
+.card label::before { content: "Select Faculty"; }
+
+/* :has(:checked) means "this card contains a checked radio" = the selected card */
+.card:has(:checked) { border-color: #16a34a; background-color: #f0fdf4; }
+.card:has(:checked) label::before { content: "Selected"; }
+
+/* Department filter: hide the cards that are not in the chosen department */
+body:has([value=CSE]:checked) .card:not(.CSE),
+body:has([value=ECE]:checked) .card:not(.ECE),
+body:has([value=HM]:checked)  .card:not(.HM),
+body:has([value=BBA]:checked) .card:not(.BBA) { display: none; }
+
+/* ===== 5. SHOW ONLY THE SELECTED FACULTY'S CONTENT ===== */
+/* Everything marked "show-for" is hidden at first.
+   Class for1 belongs to faculty 1, for2 to faculty 2, and so on. */
+.show-for, .slot-text { display: none; }
+
+body:has(#fac1:checked) .for1, body:has(#fac2:checked) .for2,
+body:has(#fac3:checked) .for3, body:has(#fac4:checked) .for4,
+body:has(#fac5:checked) .for5, body:has(#fac6:checked) .for6 { display: block; }
+
+/* Show the text of the chosen time slot.
+   Radio s1_1 (faculty 1, slot 1) is linked to the text with class t1_1 */
+body:has(#s1_1:checked) .t1_1, body:has(#s1_2:checked) .t1_2, body:has(#s1_3:checked) .t1_3, body:has(#s1_4:checked) .t1_4,
+body:has(#s2_1:checked) .t2_1, body:has(#s2_2:checked) .t2_2, body:has(#s2_3:checked) .t2_3, body:has(#s2_4:checked) .t2_4,
+body:has(#s3_1:checked) .t3_1, body:has(#s3_2:checked) .t3_2, body:has(#s3_3:checked) .t3_3,
+body:has(#s4_1:checked) .t4_1, body:has(#s4_2:checked) .t4_2, body:has(#s4_3:checked) .t4_3,
+body:has(#s5_1:checked) .t5_1, body:has(#s5_2:checked) .t5_2, body:has(#s5_3:checked) .t5_3,
+body:has(#s6_1:checked) .t6_1, body:has(#s6_2:checked) .t6_2, body:has(#s6_3:checked) .t6_3 { display: inline; }
+
+/* small info boxes in "Selected Faculty" */
+.details span {
+    display: inline-block;
+    min-width: 150px;
+    margin: 0 8px 8px 0;
+    padding: 8px 12px;
+    border-radius: 6px;
+    background-color: #eff6ff;
+}
+.details small { display: block; font-size: 12px; color: #666; }
+
+/* ===== 6. TIME SLOTS ===== */
+.legend { display: flex; flex-wrap: wrap; gap: 10px; margin-bottom: 12px; }
+.legend div {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex: 1;
+    min-width: 170px;
+    padding: 8px 12px;
+    background-color: #fafbfc;
+    border-radius: 10px;
+}
+.legend small { display: block; font-weight: normal; color: #666; }
+
+/* every slot box: green by default */
+.slot {
+    display: inline-block;
+    width: 105px;
+    margin: 5px;
+    padding: 10px 5px;
+    text-align: center;
+    font-weight: normal;
+    border: 2px solid #16a34a;
+    border-radius: 8px;
+    background-color: #bbf7d0;
+    color: #14532d;
+    cursor: pointer;
+}
+.slot:hover { background-color: #86efac; }
+
+/* pink = already booked, blue = your choice */
+.booked { background-color: #fecdd3; border-color: #e11d48; color: #881337; cursor: not-allowed; }
+.booked:hover { background-color: #fecdd3; }
+.chosen, :checked + .slot { background-color: #2563eb; border-color: #1e3a8a; color: white; }
+
+/* legend icons are small square slots */
+.icon { width: 34px; height: 34px; margin: 0; padding: 0; line-height: 30px; cursor: default; }
+
+/* ===== 7. CONFIRMATION (shown with :target when the form is submitted) ===== */
+.message { background-color: #f1f5f9; padding: 12px; border-radius: 8px; }
+
+.confirm-box {
+    display: none;
+    border: 2px dashed #16a34a;
+    background-color: #f0fdf4;
+    border-radius: 10px;
+    padding: 15px;
+}
+.confirm-box h3 { margin-top: 0; color: #15803d; }
+
+#confirmation:target .confirm-box { display: block; }
+#confirmation:target .message     { display: none; }
+
+/* ===== 8. MOBILE SCREENS ===== */
+@media (max-width: 800px) {
+    .main { flex-direction: column; }
+    .left, .right { width: 100%; }
+}
+</style>
+</head>
+
+<body>
+
+<header>
+    <h1>Faculty Appointment Scheduling System</h1>
+    <p>Book Appointments with Faculty Members</p>
+</header>
+
+<div class="main">
+
+<!-- ================= LEFT SIDE: STEP 1 ================= -->
+<div class="left">
+    <h2><span class="step">1</span>Find Faculty</h2>
+
+    <label for="dept">Department</label>
+    <select id="dept">
+        <option value="All">All Departments</option>
+        <option value="CSE">CSE</option>
+        <option value="ECE">ECE</option>
+        <option value="HM">Hotel Management</option>
+        <option value="BBA">BBA</option>
+    </select>
+
+    <h3>Search Results</h3>
+
+    <!-- Each card has a hidden radio button. Clicking the green label selects it. -->
+    <div class="card CSE"><input type="radio" name="faculty" id="fac1" checked>
+        <h4>Dr. Shiv Kumar</h4><p>Department: CSE</p><p>Expertise: Physics</p><p>Cabin: B-302</p>
+        <label for="fac1"></label></div>
+
+    <div class="card CSE"><input type="radio" name="faculty" id="fac2">
+        <h4>Dr. Vaibhav Varma</h4><p>Department: CSE</p><p>Expertise: Chemistry</p><p>Cabin: B-415</p>
+        <label for="fac2"></label></div>
+
+    <div class="card CSE"><input type="radio" name="faculty" id="fac3">
+        <h4>Dr. Saad Rahman</h4><p>Department: CSE</p><p>Expertise: Python Programming</p><p>Cabin: B-310</p>
+        <label for="fac3"></label></div>
+
+    <div class="card ECE"><input type="radio" name="faculty" id="fac4">
+        <h4>Dr. Doleshwar</h4><p>Department: ECE</p><p>Expertise: Electronics</p><p>Cabin: C-120</p>
+        <label for="fac4"></label></div>
+
+    <div class="card HM"><input type="radio" name="faculty" id="fac5">
+        <h4>Dr. Sai Varathan Chaudary</h4><p>Department: Hotel Management</p><p>Expertise: Front Office Operations</p><p>Cabin: D-201</p>
+        <label for="fac5"></label></div>
+
+    <div class="card BBA"><input type="radio" name="faculty" id="fac6">
+        <h4>Dr. Fazeel</h4><p>Department: BBA</p><p>Expertise: Financial Accounting</p><p>Cabin: E-105</p>
+        <label for="fac6"></label></div>
+
+</div>
+
+<!-- ================= RIGHT SIDE ================= -->
+<div class="right">
+
+    <!-- Selected faculty details -->
+    <div class="box">
+        <h2>Selected Faculty</h2>
+        <div class="show-for for1 details"><span><small>Name</small>Dr. Shiv Kumar</span><span><small>Department</small>CSE</span><span><small>Expertise</small>Physics</span><span><small>Cabin No</small>B-302</span></div>
+        <div class="show-for for2 details"><span><small>Name</small>Dr. Vaibhav Varma</span><span><small>Department</small>CSE</span><span><small>Expertise</small>Chemistry</span><span><small>Cabin No</small>B-415</span></div>
+        <div class="show-for for3 details"><span><small>Name</small>Dr. Saad Rahman</span><span><small>Department</small>CSE</span><span><small>Expertise</small>Python Programming</span><span><small>Cabin No</small>B-310</span></div>
+        <div class="show-for for4 details"><span><small>Name</small>Dr. Doleshwar</span><span><small>Department</small>ECE</span><span><small>Expertise</small>Electronics</span><span><small>Cabin No</small>C-120</span></div>
+        <div class="show-for for5 details"><span><small>Name</small>Dr. Sai Varathan Chaudary</span><span><small>Department</small>Hotel Management</span><span><small>Expertise</small>Front Office Operations</span><span><small>Cabin No</small>D-201</span></div>
+        <div class="show-for for6 details"><span><small>Name</small>Dr. Fazeel</span><span><small>Department</small>BBA</span><span><small>Expertise</small>Financial Accounting</span><span><small>Cabin No</small>E-105</span></div>
+    </div>
+
+    <!-- STEP 2: office hours -->
+    <div class="box">
+        <h2><span class="step">2</span>Available Office Hours</h2>
+        <p>Click a green slot to choose your time.</p>
+
+        <div class="legend">
+            <div><span class="slot icon">&#10003;</span><b>Available<small>Click to choose this slot</small></b></div>
+            <div><span class="slot icon booked">&#10005;</span><b>Not Available<small>Already booked</small></b></div>
+            <div><span class="slot icon chosen">&#9733;</span><b>Your Choice<small>Slot you selected</small></b></div>
+        </div>
+        <hr>
+
+        <!-- A hidden radio + a label = one clickable slot. Pink spans are booked. -->
+        <div class="show-for for1">
+            <input type="radio" name="slots1" id="s1_1" checked><label class="slot" for="s1_1">Mon<br>09:00 AM</label>
+            <input type="radio" name="slots1" id="s1_2"><label class="slot" for="s1_2">Mon<br>09:15 AM</label>
+            <span class="slot booked">Mon<br>09:30 AM</span>
+            <input type="radio" name="slots1" id="s1_3"><label class="slot" for="s1_3">Tue<br>11:00 AM</label>
+            <input type="radio" name="slots1" id="s1_4"><label class="slot" for="s1_4">Tue<br>11:15 AM</label>
+            <span class="slot booked">Wed<br>02:00 PM</span>
+        </div>
+        <div class="show-for for2">
+            <input type="radio" name="slots2" id="s2_1" checked><label class="slot" for="s2_1">Mon<br>10:00 AM</label>
+            <span class="slot booked">Tue<br>10:15 AM</span>
+            <input type="radio" name="slots2" id="s2_2"><label class="slot" for="s2_2">Wed<br>03:00 PM</label>
+            <input type="radio" name="slots2" id="s2_3"><label class="slot" for="s2_3">Wed<br>03:15 PM</label>
+            <input type="radio" name="slots2" id="s2_4"><label class="slot" for="s2_4">Thu<br>11:00 AM</label>
+        </div>
+        <div class="show-for for3">
+            <input type="radio" name="slots3" id="s3_1" checked><label class="slot" for="s3_1">Tue<br>09:00 AM</label>
+            <span class="slot booked">Tue<br>09:15 AM</span>
+            <input type="radio" name="slots3" id="s3_2"><label class="slot" for="s3_2">Thu<br>02:00 PM</label>
+            <input type="radio" name="slots3" id="s3_3"><label class="slot" for="s3_3">Fri<br>10:00 AM</label>
+        </div>
+        <div class="show-for for4">
+            <input type="radio" name="slots4" id="s4_1" checked><label class="slot" for="s4_1">Mon<br>11:00 AM</label>
+            <input type="radio" name="slots4" id="s4_2"><label class="slot" for="s4_2">Mon<br>11:15 AM</label>
+            <span class="slot booked">Thu<br>01:00 PM</span>
+            <input type="radio" name="slots4" id="s4_3"><label class="slot" for="s4_3">Fri<br>12:00 PM</label>
+        </div>
+        <div class="show-for for5">
+            <input type="radio" name="slots5" id="s5_1" checked><label class="slot" for="s5_1">Tue<br>02:00 PM</label>
+            <input type="radio" name="slots5" id="s5_2"><label class="slot" for="s5_2">Tue<br>02:15 PM</label>
+            <span class="slot booked">Wed<br>11:00 AM</span>
+            <input type="radio" name="slots5" id="s5_3"><label class="slot" for="s5_3">Fri<br>09:30 AM</label>
+        </div>
+        <div class="show-for for6">
+            <input type="radio" name="slots6" id="s6_1" checked><label class="slot" for="s6_1">Mon<br>03:00 PM</label>
+            <input type="radio" name="slots6" id="s6_2"><label class="slot" for="s6_2">Wed<br>10:00 AM</label>
+            <span class="slot booked">Wed<br>10:15 AM</span>
+            <input type="radio" name="slots6" id="s6_3"><label class="slot" for="s6_3">Thu<br>04:00 PM</label>
+        </div>
+    </div>
+
+    <!-- STEP 3: appointment form -->
+    <div class="box" id="appointmentForm">
+        <h2><span class="step">3</span>Appointment Details</h2>
+
+        <form action="#confirmation">
+            <label>Selected Faculty</label>
+            <div class="show-for for1 fake-input">Dr. Shiv Kumar</div>
+            <div class="show-for for2 fake-input">Dr. Vaibhav Varma</div>
+            <div class="show-for for3 fake-input">Dr. Saad Rahman</div>
+            <div class="show-for for4 fake-input">Dr. Doleshwar</div>
+            <div class="show-for for5 fake-input">Dr. Sai Varathan Chaudary</div>
+            <div class="show-for for6 fake-input">Dr. Fazeel</div>
+
+            <label>Selected Slot</label>
+            <div class="show-for for1 fake-input"><span class="slot-text t1_1">Mon - 09:00 AM</span><span class="slot-text t1_2">Mon - 09:15 AM</span><span class="slot-text t1_3">Tue - 11:00 AM</span><span class="slot-text t1_4">Tue - 11:15 AM</span></div>
+            <div class="show-for for2 fake-input"><span class="slot-text t2_1">Mon - 10:00 AM</span><span class="slot-text t2_2">Wed - 03:00 PM</span><span class="slot-text t2_3">Wed - 03:15 PM</span><span class="slot-text t2_4">Thu - 11:00 AM</span></div>
+            <div class="show-for for3 fake-input"><span class="slot-text t3_1">Tue - 09:00 AM</span><span class="slot-text t3_2">Thu - 02:00 PM</span><span class="slot-text t3_3">Fri - 10:00 AM</span></div>
+            <div class="show-for for4 fake-input"><span class="slot-text t4_1">Mon - 11:00 AM</span><span class="slot-text t4_2">Mon - 11:15 AM</span><span class="slot-text t4_3">Fri - 12:00 PM</span></div>
+            <div class="show-for for5 fake-input"><span class="slot-text t5_1">Tue - 02:00 PM</span><span class="slot-text t5_2">Tue - 02:15 PM</span><span class="slot-text t5_3">Fri - 09:30 AM</span></div>
+            <div class="show-for for6 fake-input"><span class="slot-text t6_1">Mon - 03:00 PM</span><span class="slot-text t6_2">Wed - 10:00 AM</span><span class="slot-text t6_3">Thu - 04:00 PM</span></div>
+
+            <label for="roll">Student Roll Number</label>
+            <input type="text" id="roll" placeholder="Enter Roll Number" required>
+
+            <label for="subject">Subject Code</label>
+            <input type="text" id="subject" placeholder="Enter Subject Code (e.g. CSE204)" required>
+
+            <label for="topic">Discussion Topic</label>
+            <textarea id="topic" rows="4" placeholder="Enter Discussion Topic" required></textarea>
+
+            <button type="submit">Book Appointment</button>
+        </form>
+    </div>
+
+    <!-- STEP 4: confirmation (the form jumps here with #confirmation) -->
+    <div class="box" id="confirmation">
+        <h2><span class="step">4</span>Confirmation</h2>
+        <div class="message">Your appointment slip will appear here after booking.</div>
+
+        <div class="confirm-box">
+            <h3>Appointment Confirmed</h3>
+            <p><b>Appointment ID:</b> APP1024</p>
+
+            <p class="show-for for1"><b>Faculty:</b> Dr. Shiv Kumar<br><b>Department:</b> CSE (Physics)<br><b>Cabin:</b> B-302<br><b>Time Slot:</b> <span class="slot-text t1_1">Mon - 09:00 AM</span><span class="slot-text t1_2">Mon - 09:15 AM</span><span class="slot-text t1_3">Tue - 11:00 AM</span><span class="slot-text t1_4">Tue - 11:15 AM</span></p>
+            <p class="show-for for2"><b>Faculty:</b> Dr. Vaibhav Varma<br><b>Department:</b> CSE (Chemistry)<br><b>Cabin:</b> B-415<br><b>Time Slot:</b> <span class="slot-text t2_1">Mon - 10:00 AM</span><span class="slot-text t2_2">Wed - 03:00 PM</span><span class="slot-text t2_3">Wed - 03:15 PM</span><span class="slot-text t2_4">Thu - 11:00 AM</span></p>
+            <p class="show-for for3"><b>Faculty:</b> Dr. Saad Rahman<br><b>Department:</b> CSE (Python Programming)<br><b>Cabin:</b> B-310<br><b>Time Slot:</b> <span class="slot-text t3_1">Tue - 09:00 AM</span><span class="slot-text t3_2">Thu - 02:00 PM</span><span class="slot-text t3_3">Fri - 10:00 AM</span></p>
+            <p class="show-for for4"><b>Faculty:</b> Dr. Doleshwar<br><b>Department:</b> ECE (Electronics)<br><b>Cabin:</b> C-120<br><b>Time Slot:</b> <span class="slot-text t4_1">Mon - 11:00 AM</span><span class="slot-text t4_2">Mon - 11:15 AM</span><span class="slot-text t4_3">Fri - 12:00 PM</span></p>
+            <p class="show-for for5"><b>Faculty:</b> Dr. Sai Varathan Chaudary<br><b>Department:</b> Hotel Management (Front Office Operations)<br><b>Cabin:</b> D-201<br><b>Time Slot:</b> <span class="slot-text t5_1">Tue - 02:00 PM</span><span class="slot-text t5_2">Tue - 02:15 PM</span><span class="slot-text t5_3">Fri - 09:30 AM</span></p>
+            <p class="show-for for6"><b>Faculty:</b> Dr. Fazeel<br><b>Department:</b> BBA (Financial Accounting)<br><b>Cabin:</b> E-105<br><b>Time Slot:</b> <span class="slot-text t6_1">Mon - 03:00 PM</span><span class="slot-text t6_2">Wed - 10:00 AM</span><span class="slot-text t6_3">Thu - 04:00 PM</span></p>
+
+            <p><b>Status:</b> Confirmed</p>
+            <a href="#appointmentForm" class="cancel">Cancel Appointment</a>
+        </div>
+    </div>
+
+</div>
+</div>
+
+<footer>Team Spirit | LPU | Section K3P26AE</footer>
+
+</body>
+</html>
